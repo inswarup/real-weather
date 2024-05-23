@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Weather App</title>
+</head>
+<body>
+    <h1>Weather Information</h1>
+    <p>Get the current weather information for any city around the world. Just enter the city name and click the button to fetch the latest weather details.</p>
+    <input type="text" id="cityInput" placeholder="Enter city name">
+    <button id="fetchWeatherBtn">Fetch Weather</button>
+    <div id="weatherResult"></div>
+    <div id="statusMessage" role="status" aria-live="assertive"></div>
+
+    <script>
+        const apiKey = "a1611df238msh40f71089484f7b7p10ee4cjsn67d147402901";
+        const baseUrl = "https://weatherapi-com.p.rapidapi.com";
+
+        const options = {
+            method: "GET",
+            headers: {
+                "X-RapidAPI-Key": apiKey,
+                "X-RapidAPI-Host": "weatherapi-com.p.rapidapi.com"
+            }
+        };
+
+        document.getElementById("fetchWeatherBtn").addEventListener("click", async () => {
+            await fetchWeather("current.json");
+        });
+
+        async function fetchWeather(endpoint) {
+            const city = document.getElementById("cityInput").value;
+            const statusMessage = document.getElementById("statusMessage");
+            if (!city) {
+                alert("Please enter a city name");
+                return;
+            }
+
+            statusMessage.textContent = "Fetching weather data...";
+            document.getElementById("weatherResult").textContent = "";
+
+            const url = `${baseUrl}/${endpoint}?q=${encodeURIComponent(city)}`;
+
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+                const result = await response.json();
+                displayWeather(result);
+                statusMessage.textContent = "Weather data fetched successfully.";
+                setTimeout(() => {
+                    statusMessage.textContent = "";
+                }, 2000);
+            } catch (error) {
+                console.error(error);
+                statusMessage.textContent = "Error fetching weather data";
+            }
+        }
+
+        function displayWeather(data) {
+            const weatherDiv = document.getElementById("weatherResult");
+            const location = data.location.name;
+
+            let html = `
+                <h2>${location}</h2>
+                <p>Temperature: ${data.current.temp_c}°C</p>
+                <p>Condition: ${data.current.condition.text}</p>
+                <img src="${data.current.condition.icon}" alt="${data.current.condition.text}">
+                <p>Wind: ${data.current.wind_kph} kph</p>
+                <p>Humidity: ${data.current.humidity}%</p>
+            `;
+
+            weatherDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
